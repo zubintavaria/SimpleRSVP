@@ -223,6 +223,38 @@ class DatabaseTest extends TestCase {
         $this->assertCount( 2, $result );
     }
 
+    // ── delete_for_post() ─────────────────────────────────────────────────
+
+    public function test_delete_for_post_issues_delete_query(): void {
+        SimpleRSVP_Database::delete_for_post( 42 );
+
+        $deleteCall = $this->findCall( 'delete' );
+        $this->assertNotNull( $deleteCall, 'Expected a DELETE call.' );
+    }
+
+    public function test_delete_for_post_targets_correct_post_id(): void {
+        SimpleRSVP_Database::delete_for_post( 42 );
+
+        $deleteCall = $this->findCall( 'delete' );
+        $this->assertSame( 42, $deleteCall['where']['post_id'] );
+    }
+
+    public function test_delete_for_post_targets_correct_table(): void {
+        SimpleRSVP_Database::delete_for_post( 1 );
+
+        $deleteCall = $this->findCall( 'delete' );
+        $this->assertStringContainsString( 'simplersvp', $deleteCall['table'] );
+    }
+
+    public function test_delete_for_post_does_not_affect_other_tables(): void {
+        SimpleRSVP_Database::delete_for_post( 1 );
+
+        $deleteCall = $this->findCall( 'delete' );
+        // Table must be the plugin's own table, not an arbitrary WP table.
+        $this->assertStringStartsWith( 'wp_', $deleteCall['table'] );
+        $this->assertStringEndsWith( 'simplersvp', $deleteCall['table'] );
+    }
+
     // ── Utility ───────────────────────────────────────────────────────────
 
     /** Find the first recorded call of a given method, or null. */

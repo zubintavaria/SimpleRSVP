@@ -24,11 +24,17 @@ if ( ! defined( 'MINUTE_IN_SECONDS' ) ) define( 'MINUTE_IN_SECONDS', 60 );
 /** Captures the last wp_send_json_* call for assertions. */
 $GLOBALS['_srsvp_last_json'] = null;
 
+/** Captures the last wp_safe_redirect() URL for assertions. */
+$GLOBALS['_srsvp_last_redirect'] = null;
+
 /** In-memory transient store. */
 $GLOBALS['_srsvp_transients'] = [];
 
 /** In-memory post store (id → WP_Post stub). */
 $GLOBALS['_srsvp_posts'] = [];
+
+/** In-memory post title store (id → string). */
+$GLOBALS['_srsvp_post_titles'] = [];
 
 // ── Input-sanitising helpers ───────────────────────────────────────────────
 
@@ -141,6 +147,14 @@ if ( ! function_exists( '__' ) ) {
     function __( $text, $domain = 'default' ) { return $text; }
 }
 
+if ( ! function_exists( 'esc_html__' ) ) {
+    function esc_html__( $text, $domain = 'default' ) { return esc_html( $text ); }
+}
+
+if ( ! function_exists( 'esc_attr__' ) ) {
+    function esc_attr__( $text, $domain = 'default' ) { return esc_attr( $text ); }
+}
+
 // ── Other WP helpers used by plugin classes ────────────────────────────────
 
 if ( ! function_exists( 'add_shortcode' ) ) {
@@ -200,6 +214,69 @@ if ( ! function_exists( 'add_action' ) ) {
     function add_action() {}
 }
 
+if ( ! function_exists( 'add_menu_page' ) ) {
+    function add_menu_page() {}
+}
+
+if ( ! function_exists( 'current_user_can' ) ) {
+    function current_user_can( $capability ) { return true; }
+}
+
+if ( ! function_exists( 'wp_die' ) ) {
+    function wp_die( $message = '', $title = '', $args = array() ) {
+        throw new \RuntimeException( 'wp_die: ' . $message );
+    }
+}
+
+if ( ! function_exists( 'check_admin_referer' ) ) {
+    /** No-op: nonce validation always passes in tests. */
+    function check_admin_referer( $action, $query_arg = '_wpnonce' ) { return true; }
+}
+
+if ( ! function_exists( 'wp_nonce_field' ) ) {
+    function wp_nonce_field( $action, $name = '_wpnonce', $referer = true, $echo = true ) {
+        $html = '<input type="hidden" name="' . esc_attr( $name ) . '" value="test-nonce" />';
+        if ( $echo ) { echo $html; }
+        return $html;
+    }
+}
+
+if ( ! function_exists( 'esc_js' ) ) {
+    function esc_js( $text ) { return addslashes( (string) $text ); }
+}
+
+if ( ! function_exists( 'add_query_arg' ) ) {
+    function add_query_arg( $args, $url = '' ) {
+        $query = http_build_query( $args );
+        return $url . ( strpos( $url, '?' ) === false ? '?' : '&' ) . $query;
+    }
+}
+
+/**
+ * Exception thrown by wp_safe_redirect() so tests can intercept and assert
+ * on the redirect URL without executing a real HTTP redirect or exit().
+ */
+class SimpleRSVP_RedirectException extends \RuntimeException {}
+
+if ( ! function_exists( 'wp_safe_redirect' ) ) {
+    function wp_safe_redirect( $url, $status = 302, $x_redirect_by = 'WordPress' ) {
+        $GLOBALS['_srsvp_last_redirect'] = $url;
+        throw new SimpleRSVP_RedirectException( $url );
+    }
+}
+
+if ( ! function_exists( 'get_permalink' ) ) {
+    function get_permalink( $post_id = 0 ) {
+        return 'http://example.com/?p=' . (int) $post_id;
+    }
+}
+
+if ( ! function_exists( 'get_the_title' ) ) {
+    function get_the_title( $post_id = 0 ) {
+        return $GLOBALS['_srsvp_post_titles'][ $post_id ] ?? '';
+    }
+}
+
 // ── Minimal $wpdb stub ─────────────────────────────────────────────────────
 
 /**
@@ -252,6 +329,11 @@ class WpdbStub {
 
     public function update( string $table, array $data, array $where, $format = null, $where_format = null ): int|false {
         $this->__calls[] = [ 'method' => 'update', 'table' => $table, 'data' => $data, 'where' => $where ];
+        return 1;
+    }
+
+    public function delete( string $table, array $where, $where_format = null ): int|false {
+        $this->__calls[] = [ 'method' => 'delete', 'table' => $table, 'where' => $where ];
         return 1;
     }
 }
