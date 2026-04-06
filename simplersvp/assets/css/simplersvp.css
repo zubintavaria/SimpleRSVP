@@ -1,0 +1,211 @@
+/*
+ * SimpleRSVP — Frontend styles
+ *
+ * Design philosophy: inherit the active theme's fonts, base text color,
+ * and background as much as possible. Only the yes/no/maybe accent colors
+ * are hard-coded (green / red / orange) since they carry semantic meaning.
+ */
+
+/* ── Container ─────────────────────────────────────────────────────────── */
+
+.simplersvp-widget {
+	/* Local tokens — override these in your theme's CSS if needed. */
+	--srsvp-radius:      8px;
+	--srsvp-gap:         0.75rem;
+	--srsvp-border:      rgba(0, 0, 0, 0.15);
+	--srsvp-yes-color:   #2e7d32;
+	--srsvp-no-color:    #c62828;
+	--srsvp-maybe-color: #e65100;
+
+	font-family: inherit;
+	color:       inherit;
+	max-width:   520px;
+	margin:      1.5rem 0;
+}
+
+/* ── Card ───────────────────────────────────────────────────────────────── */
+
+.simplersvp-card {
+	border:        1px solid var(--srsvp-border);
+	border-radius: var(--srsvp-radius);
+	padding:       1.5rem;
+	background:    transparent;
+}
+
+/* ── Question heading ───────────────────────────────────────────────────── */
+
+.simplersvp-question {
+	font-size:   1.1em;
+	font-weight: 600;
+	margin:      0 0 1rem;
+	color:       inherit;
+}
+
+/* ── Name input ─────────────────────────────────────────────────────────── */
+
+.simplersvp-name-row {
+	margin-bottom: var(--srsvp-gap);
+}
+
+.simplersvp-name-input {
+	width:       100%;
+	box-sizing:  border-box;
+	padding:     0.45rem 0.65rem;
+	border:      1px solid var(--srsvp-border);
+	border-radius: 4px;
+	font-size:   0.9em;
+	font-family: inherit;
+	background:  transparent;
+	color:       inherit;
+	transition:  border-color 0.15s;
+}
+
+.simplersvp-name-input:focus {
+	outline:      none;
+	border-color: currentColor;
+}
+
+/* ── Response buttons ───────────────────────────────────────────────────── */
+
+.simplersvp-buttons {
+	display:   flex;
+	gap:       var(--srsvp-gap);
+	flex-wrap: wrap;
+	margin-bottom: 1rem;
+}
+
+.simplersvp-btn {
+	padding:       0.5rem 1.4rem;
+	border:        2px solid currentColor;
+	border-radius: var(--srsvp-radius);
+	background:    transparent;
+	color:         inherit;
+	font-size:     0.95em;
+	font-family:   inherit;
+	font-weight:   500;
+	cursor:        pointer;
+	transition:    background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s;
+	line-height:   1.4;
+}
+
+.simplersvp-btn:hover:not(:disabled) {
+	background: rgba(0, 0, 0, 0.06);
+}
+
+/* Selected / active states with semantic colors */
+.simplersvp-btn-yes.simplersvp-selected {
+	border-color: var(--srsvp-yes-color);
+	color:        var(--srsvp-yes-color);
+	background:   rgba(46, 125, 50, 0.08);
+	font-weight:  700;
+}
+
+.simplersvp-btn-no.simplersvp-selected {
+	border-color: var(--srsvp-no-color);
+	color:        var(--srsvp-no-color);
+	background:   rgba(198, 40, 40, 0.08);
+	font-weight:  700;
+}
+
+.simplersvp-btn-maybe.simplersvp-selected {
+	border-color: var(--srsvp-maybe-color);
+	color:        var(--srsvp-maybe-color);
+	background:   rgba(230, 81, 0, 0.08);
+	font-weight:  700;
+}
+
+.simplersvp-btn:disabled {
+	opacity: 0.5;
+	cursor:  not-allowed;
+}
+
+/* ── Submitted state ────────────────────────────────────────────────────── */
+
+.simplersvp-submitted {
+	margin-bottom: 0.75rem;
+}
+
+.simplersvp-current-response {
+	margin:    0 0 0.4rem;
+	font-size: 0.95em;
+}
+
+.simplersvp-change-btn {
+	background:      none;
+	border:          none;
+	padding:         0;
+	color:           inherit;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+	cursor:          pointer;
+	font-size:       0.85em;
+	font-family:     inherit;
+	opacity:         0.65;
+	transition:      opacity 0.15s;
+}
+
+.simplersvp-change-btn:hover {
+	opacity: 1;
+}
+
+/* ── Live count display ─────────────────────────────────────────────────── */
+
+.simplersvp-counts {
+	display:     flex;
+	gap:         calc( var(--srsvp-gap) * 2 );
+	margin-top:  1.25rem;
+	padding-top: 1rem;
+	border-top:  1px solid var(--srsvp-border);
+	flex-wrap:   wrap;
+}
+
+.simplersvp-count-item {
+	display:        flex;
+	flex-direction: column;
+	align-items:    center;
+	min-width:      56px;
+	transition:     transform 0.2s;
+}
+
+/* Briefly scale up when the active response count changes */
+.simplersvp-count-item.simplersvp-count-active {
+	transform: scale(1.1);
+}
+
+.simplersvp-count-num {
+	font-size:   2em;
+	font-weight: 700;
+	line-height: 1;
+	transition:  color 0.2s;
+}
+
+.simplersvp-count-label {
+	font-size:      0.75em;
+	opacity:        0.65;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin-top:     0.2em;
+}
+
+/* Semantic count colors */
+.simplersvp-count-yes   .simplersvp-count-num { color: var(--srsvp-yes-color); }
+.simplersvp-count-no    .simplersvp-count-num { color: var(--srsvp-no-color); }
+.simplersvp-count-maybe .simplersvp-count-num { color: var(--srsvp-maybe-color); }
+
+/* ── Loading / spinner state ────────────────────────────────────────────── */
+
+.simplersvp-btn.simplersvp-loading {
+	opacity: 0.6;
+	cursor:  wait;
+}
+
+/* ── Accessibility: respect reduced motion ──────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+	.simplersvp-btn,
+	.simplersvp-count-item,
+	.simplersvp-count-num,
+	.simplersvp-change-btn {
+		transition: none;
+	}
+}
