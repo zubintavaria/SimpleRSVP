@@ -35,20 +35,24 @@ class SimpleRSVP_Ajax {
 		// Basic validation.
 		if ( ! $post_id ) {
 			wp_send_json_error( array( 'message' => 'Invalid post.' ), 400 );
+			return;
 		}
 
 		if ( ! $device_id || ! preg_match( self::UUID_PATTERN, $device_id ) ) {
 			wp_send_json_error( array( 'message' => 'Invalid device ID.' ), 400 );
+			return;
 		}
 
 		if ( ! in_array( $response, self::VALID_RESPONSES, true ) ) {
 			wp_send_json_error( array( 'message' => 'Invalid response value.' ), 400 );
+			return;
 		}
 
 		// Confirm the post actually exists and is published.
 		$post = get_post( $post_id );
 		if ( ! $post || ! in_array( $post->post_status, array( 'publish', 'private' ), true ) ) {
 			wp_send_json_error( array( 'message' => 'Post not found.' ), 404 );
+			return;
 		}
 
 		// Rate limiting: max RATE_LIMIT requests per device per minute.
@@ -56,6 +60,7 @@ class SimpleRSVP_Ajax {
 		$hits     = (int) get_transient( $rate_key );
 		if ( $hits >= self::RATE_LIMIT ) {
 			wp_send_json_error( array( 'message' => 'Too many requests. Please wait a moment.' ), 429 );
+			return;
 		}
 		set_transient( $rate_key, $hits + 1, MINUTE_IN_SECONDS );
 
@@ -76,6 +81,7 @@ class SimpleRSVP_Ajax {
 
 		if ( ! $post_id ) {
 			wp_send_json_error( array( 'message' => 'Invalid post.' ), 400 );
+			return;
 		}
 
 		$counts   = SimpleRSVP_Database::get_counts( $post_id );
