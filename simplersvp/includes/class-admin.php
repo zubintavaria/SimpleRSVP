@@ -15,7 +15,46 @@ class SimpleRSVP_Admin {
 			'dashicons-calendar-alt',
 			30
 		);
+		add_action( 'admin_post_simplersvp_reset', array( __CLASS__, 'handle_reset' ) );
 	}
+
+	// -------------------------------------------------------------------------
+	// Reset handler
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Handle the "Reset Counters" form submission.
+	 *
+	 * Registered as admin_post_simplersvp_reset, so WordPress routes the
+	 * admin-post.php POST here before any page is rendered.
+	 */
+	public static function handle_reset() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'simplersvp' ) );
+		}
+
+		$post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
+
+		if ( ! $post_id ) {
+			wp_die( esc_html__( 'Invalid event.', 'simplersvp' ) );
+		}
+
+		check_admin_referer( 'simplersvp_reset_' . $post_id, 'simplersvp_reset_nonce' );
+
+		SimpleRSVP_Database::delete_for_post( $post_id );
+
+		wp_safe_redirect(
+			add_query_arg(
+				array( 'page' => 'simplersvp', 'post_id' => $post_id, 'srsvp_reset' => '1' ),
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	// -------------------------------------------------------------------------
+	// Page routing
+	// -------------------------------------------------------------------------
 
 	public static function render_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -49,21 +88,22 @@ class SimpleRSVP_Admin {
 						<tr>
 							<th><?php esc_html_e( 'Event / Post', 'simplersvp' ); ?></th>
 							<th style="width:120px;"><?php esc_html_e( 'Total RSVPs', 'simplersvp' ); ?></th>
-							<th style="width:100px;"><?php esc_html_e( 'Actions', 'simplersvp' ); ?></th>
+							<th style="width:180px;"><?php esc_html_e( 'Actions', 'simplersvp' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php foreach ( $posts as $row ) :
-							$title      = get_the_title( (int) $row['post_id'] );
-							$title      = $title ?: sprintf( __( 'Post #%d', 'simplersvp' ), $row['post_id'] );
-							$detail_url = admin_url( 'admin.php?page=simplersvp&post_id=' . absint( $row['post_id'] ) );
+							$pid        = (int) $row['post_id'];
+							$title      = get_the_title( $pid );
+							$title      = $title ?: sprintf( __( 'Post #%d', 'simplersvp' ), $pid );
+							$detail_url = admin_url( 'admin.php?page=simplersvp&post_id=' . $pid );
 						?>
 							<tr>
 								<td>
 									<strong><?php echo esc_html( $title ); ?></strong>
 									<div class="row-actions">
 										<span>
-											<a href="<?php echo esc_url( get_permalink( (int) $row['post_id'] ) ); ?>"
+											<a href="<?php echo esc_url( get_permalink( $pid ) ); ?>"
 											   target="_blank"><?php esc_html_e( 'View post', 'simplersvp' ); ?></a>
 										</span>
 									</div>
@@ -73,6 +113,8 @@ class SimpleRSVP_Admin {
 									<a href="<?php echo esc_url( $detail_url ); ?>">
 										<?php esc_html_e( 'View Details', 'simplersvp' ); ?>
 									</a>
+									&nbsp;|&nbsp;
+									<?php self::reset_form( $pid, /* compact */ true ); ?>
 								</td>
 							</tr>
 						<?php endforeach; ?>
@@ -109,6 +151,13 @@ class SimpleRSVP_Admin {
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html( $title ); ?> — <?php esc_html_e( 'RSVPs', 'simplersvp' ); ?></h1>
+
+			<?php if ( isset( $_GET['srsvp_reset'] ) && $_GET['srsvp_reset'] === '1' ) : ?>
+				<div class="notice notice-success is-dismissible">
+					<p><?php esc_html_e( 'RSVP counters have been reset to zero.', 'simplersvp' ); ?></p>
+				</div>
+			<?php endif; ?>
+
 			<p>
 				<a href="<?php echo esc_url( $back_url ); ?>">&larr; <?php esc_html_e( 'Back to all events', 'simplersvp' ); ?></a>
 			</p>
@@ -149,6 +198,10 @@ class SimpleRSVP_Admin {
 				</tbody>
 			</table>
 
+			<p style="margin-top:1em;">
+				<?php self::reset_form( $post_id, /* compact */ false ); ?>
+			</p>
+
 			<h2 style="margin-top:2em;"><?php esc_html_e( 'Individual Responses', 'simplersvp' ); ?></h2>
 
 			<?php if ( empty( $entries ) ) : ?>
@@ -180,6 +233,45 @@ class SimpleRSVP_Admin {
 				</table>
 			<?php endif; ?>
 		</div>
+		<?php
+	}
+
+	// -------------------------------------------------------------------------
+	// Shared reset form helper
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Render a small "Reset Counters" form.
+	 *
+	 * @param int  $post_id  The event post ID to reset.
+	 * @param bool $compact  true = inline link style (list view), false = button (detail view).
+	 */
+	public static function reset_form( $post_id, $compact = false ) {
+		$confirm_msg = esc_js(
+			__( 'Reset all RSVPs for this event? This cannot be undone.', 'simplersvp' )
+		);
+		?>
+		<form method="post"
+		      action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"
+		      style="display:inline;"
+		      onsubmit="return confirm('<?php echo $confirm_msg; ?>')">
+			<?php wp_nonce_field( 'simplersvp_reset_' . $post_id, 'simplersvp_reset_nonce' ); ?>
+			<input type="hidden" name="action"  value="simplersvp_reset">
+			<input type="hidden" name="post_id" value="<?php echo esc_attr( $post_id ); ?>">
+			<?php if ( $compact ) : ?>
+				<button type="submit"
+				        class="button-link"
+				        style="color:#b32d2e;">
+					<?php esc_html_e( 'Reset', 'simplersvp' ); ?>
+				</button>
+			<?php else : ?>
+				<button type="submit"
+				        class="button button-secondary"
+				        style="color:#b32d2e;border-color:#b32d2e;">
+					<?php esc_html_e( 'Reset Counters', 'simplersvp' ); ?>
+				</button>
+			<?php endif; ?>
+		</form>
 		<?php
 	}
 }

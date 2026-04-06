@@ -14,3 +14,4 @@ $GLOBALS['wpdb'] = new WpdbStub();
 require_once __DIR__ . '/../../simplersvp/includes/class-database.php';
 require_once __DIR__ . '/../../simplersvp/includes/class-ajax.php';
 require_once __DIR__ . '/../../simplersvp/includes/class-shortcode.php';
+require_once __DIR__ . '/../../simplersvp/includes/class-admin.php';

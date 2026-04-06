@@ -166,6 +166,17 @@ class SimpleRSVP_Database {
 	}
 
 	/**
+	 * Delete all RSVP responses for a given post (reset to zero).
+	 *
+	 * @param int $post_id
+	 */
+	public static function delete_for_post( $post_id ) {
+		global $wpdb;
+		$table = self::table();
+		$wpdb->delete( $table, array( 'post_id' => $post_id ), array( '%d' ) );
+	}
+
+	/**
 	 * Return all posts that have at least one RSVP, with total counts.
 	 *
 	 * @return array[]
