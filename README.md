@@ -2,6 +2,8 @@
 
 A lightweight WordPress plugin that adds a simple, embeddable RSVP widget to any post or page via a shortcode.
 
+**[Download simplersvp-1.0.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.0.0.zip)**
+
 Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device gets one response. Live counts update automatically as others respond, and anyone can change their answer at any time. An admin dashboard shows headcounts and named responses per event.
 
 ---
@@ -28,16 +30,20 @@ Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device 
 
 ## Installation
 
-1. **Download** this repository as a ZIP, or clone it:
-   ```bash
-   git clone https://github.com/zubintavaria/simplersvp.git
-   ```
+### Option A — Upload via WordPress admin (recommended)
 
-2. **Copy the plugin folder** into your WordPress plugins directory:
+1. **[Download simplersvp-1.0.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.0.0.zip)**
+2. In your WordPress admin go to **Plugins → Add New → Upload Plugin**
+3. Choose the downloaded ZIP and click **Install Now**
+4. Click **Activate Plugin**
+
+### Option B — Manual install
+
+1. Download and unzip `simplersvp-1.0.0.zip`, or clone this repository:
+   ```bash
+   git clone https://github.com/zubintavaria/SimpleRSVP.git
    ```
-   wp-content/plugins/simplersvp/
-   ```
-   The folder structure should look like:
+2. Copy the `simplersvp/` folder into your WordPress plugins directory:
    ```
    wp-content/plugins/simplersvp/
    ├── simplersvp.php
@@ -45,10 +51,9 @@ Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device 
    ├── assets/
    └── templates/
    ```
+3. In the WordPress admin go to **Plugins → Installed Plugins** and activate **SimpleRSVP**
 
-3. **Activate the plugin** in the WordPress admin under **Plugins → Installed Plugins**.
-
-   The database table (`wp_simplersvp`) is created automatically on activation.
+The database table (`wp_simplersvp`) is created automatically on activation.
 
 ---
 
