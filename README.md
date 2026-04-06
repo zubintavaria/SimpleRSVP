@@ -2,7 +2,7 @@
 
 A lightweight WordPress plugin that adds a simple, embeddable RSVP widget to any post or page via a shortcode.
 
-**[Download simplersvp-1.0.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.0.0.zip)**
+**[Download simplersvp-1.1.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.1.0.zip)**
 
 Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device gets one response. Live counts update automatically as others respond, and anyone can change their answer at any time. An admin dashboard shows headcounts and named responses per event.
 
@@ -32,7 +32,7 @@ Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device 
 
 ### Option A — Upload via WordPress admin (recommended)
 
-1. **[Download simplersvp-1.0.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.0.0.zip)**
+1. **[Download simplersvp-1.1.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.1.0.zip)**
 2. In your WordPress admin go to **Plugins → Add New → Upload Plugin**
 3. Choose the downloaded ZIP and click **Install Now**
 4. Click **Activate Plugin**
@@ -178,6 +178,16 @@ Covers:
 | Spam / flooding | Transient-based rate limit: max 10 submissions per device per minute |
 | XSS (admin) | All output escaped with `esc_html`, `esc_attr`, `esc_url` |
 | Privilege escalation | Admin dashboard gated behind `manage_options` capability |
+
+---
+
+## Changelog
+
+### 1.1.0
+- **Admin: Reset Counters** — each event in the admin dashboard now has a "Reset Counters" button (detail view) and a compact "Reset" link (list view). Clicking prompts a confirmation dialog, then deletes all RSVP records for that event and shows a success notice.
+
+### 1.0.0
+- Initial release.
 
 ---
 
