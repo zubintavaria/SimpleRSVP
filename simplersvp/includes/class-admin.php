@@ -15,6 +15,9 @@ class SimpleRSVP_Admin {
 			'dashicons-calendar-alt',
 			30
 		);
+	}
+
+	public static function register_post_handlers() {
 		add_action( 'admin_post_simplersvp_reset',           array( __CLASS__, 'handle_reset' ) );
 		add_action( 'admin_post_simplersvp_delete_response', array( __CLASS__, 'handle_delete_response' ) );
 	}

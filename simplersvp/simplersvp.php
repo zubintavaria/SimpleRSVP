@@ -27,6 +27,7 @@ register_activation_hook( __FILE__, array( 'SimpleRSVP_Database', 'create_table'
 add_action( 'init', array( 'SimpleRSVP_Shortcode', 'register' ) );
 add_action( 'wp_enqueue_scripts', 'simplersvp_enqueue_assets' );
 add_action( 'admin_menu', array( 'SimpleRSVP_Admin', 'register_menu' ) );
+add_action( 'admin_init', array( 'SimpleRSVP_Admin', 'register_post_handlers' ) );
 
 SimpleRSVP_Ajax::register();
 
