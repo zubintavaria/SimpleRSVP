@@ -2,7 +2,7 @@
 
 A lightweight WordPress plugin that adds a simple, embeddable RSVP widget to any post or page via a shortcode.
 
-**[Download simplersvp-1.2.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.2.0.zip)**
+**[Download simplersvp-1.2.1.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.2.1.zip)**
 
 Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device gets one response. Live counts update automatically as others respond, and anyone can change their answer at any time. An admin dashboard shows headcounts and named responses per event.
 
@@ -32,7 +32,7 @@ Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device 
 
 ### Option A — Upload via WordPress admin (recommended)
 
-1. **[Download simplersvp-1.2.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.2.0.zip)**
+1. **[Download simplersvp-1.2.1.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.2.1.zip)**
 2. In your WordPress admin go to **Plugins → Add New → Upload Plugin**
 3. Choose the downloaded ZIP and click **Install Now**
 4. Click **Activate Plugin**
@@ -214,6 +214,9 @@ Covers:
 ---
 
 ## Changelog
+
+### 1.2.1
+- **Bug fix: Reset Counters and Delete buttons now work correctly.** The `admin_post_*` handlers were being registered inside `admin_menu`, which does not fire during `admin-post.php` requests. Moved registration to `admin_init` so the handlers are always available when forms are submitted.
 
 ### 1.2.0
 - **Admin: Delete individual responses** — each row in the per-event detail table now has a "Delete" button. Clicking prompts a confirm dialog then removes that single response. A success notice confirms deletion.
