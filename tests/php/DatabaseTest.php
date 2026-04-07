@@ -189,8 +189,8 @@ class DatabaseTest extends TestCase {
 
     public function test_get_all_for_post_returns_rows_as_arrays(): void {
         $rows = [
-            [ 'name' => 'Dave', 'response' => 'yes',   'updated_at' => '2025-06-01 10:00:00' ],
-            [ 'name' => '',     'response' => 'maybe',  'updated_at' => '2025-06-01 09:00:00' ],
+            [ 'id' => '1', 'name' => 'Dave', 'response' => 'yes',   'updated_at' => '2025-06-01 10:00:00' ],
+            [ 'id' => '2', 'name' => '',     'response' => 'maybe', 'updated_at' => '2025-06-01 09:00:00' ],
         ];
         $this->wpdb->__get_results_queue = [ $rows ];
 
@@ -199,6 +199,18 @@ class DatabaseTest extends TestCase {
         $this->assertCount( 2, $result );
         $this->assertSame( 'Dave', $result[0]['name'] );
         $this->assertSame( 'yes',  $result[0]['response'] );
+    }
+
+    public function test_get_all_for_post_includes_id_column(): void {
+        $rows = [
+            [ 'id' => '42', 'name' => 'Eve', 'response' => 'no', 'updated_at' => '2025-06-01 10:00:00' ],
+        ];
+        $this->wpdb->__get_results_queue = [ $rows ];
+
+        $result = SimpleRSVP_Database::get_all_for_post( 10 );
+
+        $this->assertArrayHasKey( 'id', $result[0] );
+        $this->assertSame( '42', $result[0]['id'] );
     }
 
     public function test_get_all_for_post_returns_empty_array_when_no_rows(): void {
@@ -221,6 +233,36 @@ class DatabaseTest extends TestCase {
         $result = SimpleRSVP_Database::get_posts_with_rsvps();
 
         $this->assertCount( 2, $result );
+    }
+
+    // ── delete_by_id() ───────────────────────────────────────────────────
+
+    public function test_delete_by_id_issues_delete_query(): void {
+        SimpleRSVP_Database::delete_by_id( 7 );
+
+        $this->assertNotNull( $this->findCall( 'delete' ), 'Expected a DELETE call.' );
+    }
+
+    public function test_delete_by_id_targets_correct_id(): void {
+        SimpleRSVP_Database::delete_by_id( 99 );
+
+        $deleteCall = $this->findCall( 'delete' );
+        $this->assertSame( 99, $deleteCall['where']['id'] );
+    }
+
+    public function test_delete_by_id_targets_correct_table(): void {
+        SimpleRSVP_Database::delete_by_id( 1 );
+
+        $deleteCall = $this->findCall( 'delete' );
+        $this->assertStringEndsWith( 'simplersvp', $deleteCall['table'] );
+    }
+
+    public function test_delete_by_id_uses_id_not_post_id(): void {
+        SimpleRSVP_Database::delete_by_id( 5 );
+
+        $deleteCall = $this->findCall( 'delete' );
+        $this->assertArrayHasKey( 'id',       $deleteCall['where'] );
+        $this->assertArrayNotHasKey( 'post_id', $deleteCall['where'] );
     }
 
     // ── delete_for_post() ─────────────────────────────────────────────────

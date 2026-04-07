@@ -415,3 +415,222 @@ describe( 'polling', () => {
         expect( global.fetch.mock.calls.length ).toBe( callsBefore );
     } );
 } );
+
+// ── List widget helpers ───────────────────────────────────────────────────────
+
+function makeListHtml( {
+    postId        = '42',
+    yes           = 'Yes',
+    no            = 'No',
+    maybe         = 'Maybe',
+    showMaybe     = 'true',
+    showAnonymous = 'true',
+} = {} ) {
+    return `
+    <div class="simplersvp-list-widget"
+         data-post-id="${ postId }"
+         data-yes="${ yes }"
+         data-no="${ no }"
+         data-maybe="${ maybe }"
+         data-show-maybe="${ showMaybe }"
+         data-show-anonymous="${ showAnonymous }">
+      <div class="simplersvp-list-card">
+        <p class="simplersvp-list-loading">Loading responses&hellip;</p>
+        <p class="simplersvp-list-empty" hidden>No responses yet.</p>
+        <table class="simplersvp-list-table" hidden>
+          <thead>
+            <tr>
+              <th class="simplersvp-list-th-name">Name</th>
+              <th class="simplersvp-list-th-response">Response</th>
+            </tr>
+          </thead>
+          <tbody class="simplersvp-list-body"></tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/** Init a list widget with a given responses payload. */
+async function initListWidget( responses = [], widgetHtml = makeListHtml() ) {
+    document.body.innerHTML = widgetHtml;
+    global.fetch = makeFetchMock( {
+        success: true,
+        data: { responses },
+    } );
+    eval( scriptSrc ); // eslint-disable-line no-eval
+    document.dispatchEvent( new Event( 'DOMContentLoaded' ) );
+    await flushPromises();
+    return document.querySelector( '.simplersvp-list-widget' );
+}
+
+// ── List widget: initial / loading state ─────────────────────────────────────
+
+describe( 'list widget — initial state', () => {
+    beforeEach( () => localStorage.clear() );
+
+    test( 'hides the loading message after data arrives', async () => {
+        const w = await initListWidget( [] );
+        expect( w.querySelector( '.simplersvp-list-loading' ).hidden ).toBe( true );
+    } );
+
+    test( 'shows empty message when no responses', async () => {
+        const w = await initListWidget( [] );
+        expect( w.querySelector( '.simplersvp-list-empty' ).hidden ).toBe( false );
+    } );
+
+    test( 'table remains hidden when no responses', async () => {
+        const w = await initListWidget( [] );
+        expect( w.querySelector( '.simplersvp-list-table' ).hidden ).toBe( true );
+    } );
+
+    test( 'shows table when responses exist', async () => {
+        const w = await initListWidget( [ { name: 'Alice', response: 'yes' } ] );
+        expect( w.querySelector( '.simplersvp-list-table' ).hidden ).toBe( false );
+    } );
+
+    test( 'hides empty message when responses exist', async () => {
+        const w = await initListWidget( [ { name: 'Bob', response: 'no' } ] );
+        expect( w.querySelector( '.simplersvp-list-empty' ).hidden ).toBe( true );
+    } );
+} );
+
+// ── List widget: table rendering ─────────────────────────────────────────────
+
+describe( 'list widget — table rendering', () => {
+    beforeEach( () => localStorage.clear() );
+
+    test( 'renders one row per response', async () => {
+        const responses = [
+            { name: 'Alice', response: 'yes'   },
+            { name: 'Bob',   response: 'no'    },
+            { name: '',      response: 'maybe' },
+        ];
+        const w = await initListWidget( responses );
+        expect( w.querySelectorAll( '.simplersvp-list-body tr' ).length ).toBe( 3 );
+    } );
+
+    test( 'renders name in the first cell', async () => {
+        const w = await initListWidget( [ { name: 'Charlie', response: 'yes' } ] );
+        expect( w.querySelector( '.simplersvp-list-name' ).textContent ).toBe( 'Charlie' );
+    } );
+
+    test( 'renders anonymous placeholder for empty name', async () => {
+        const w = await initListWidget( [ { name: '', response: 'no' } ] );
+        expect( w.querySelector( '.simplersvp-list-name' ).textContent ).toContain( 'anonymous' );
+    } );
+
+    test( 'attaches correct badge class for yes', async () => {
+        const w = await initListWidget( [ { name: 'D', response: 'yes' } ] );
+        expect( w.querySelector( '.simplersvp-list-badge' ).classList.contains( 'simplersvp-list-badge-yes' ) ).toBe( true );
+    } );
+
+    test( 'attaches correct badge class for no', async () => {
+        const w = await initListWidget( [ { name: 'E', response: 'no' } ] );
+        expect( w.querySelector( '.simplersvp-list-badge' ).classList.contains( 'simplersvp-list-badge-no' ) ).toBe( true );
+    } );
+
+    test( 'attaches correct badge class for maybe', async () => {
+        const w = await initListWidget( [ { name: 'F', response: 'maybe' } ] );
+        expect( w.querySelector( '.simplersvp-list-badge' ).classList.contains( 'simplersvp-list-badge-maybe' ) ).toBe( true );
+    } );
+
+    test( 'uses custom label text in badge', async () => {
+        const w = await initListWidget(
+            [ { name: 'G', response: 'yes' } ],
+            makeListHtml( { yes: 'Attending' } )
+        );
+        expect( w.querySelector( '.simplersvp-list-badge' ).textContent ).toBe( 'Attending' );
+    } );
+
+    test( 'escapes HTML in names to prevent XSS', async () => {
+        const w = await initListWidget( [ { name: '<script>alert(1)</script>', response: 'yes' } ] );
+        expect( w.querySelector( '.simplersvp-list-name' ).innerHTML ).not.toContain( '<script>' );
+        expect( w.querySelector( '.simplersvp-list-name' ).innerHTML ).toContain( '&lt;script&gt;' );
+    } );
+} );
+
+// ── List widget: filtering ────────────────────────────────────────────────────
+
+describe( 'list widget — filtering', () => {
+    beforeEach( () => localStorage.clear() );
+
+    test( 'hides maybe rows when show_maybe=false', async () => {
+        const responses = [
+            { name: 'A', response: 'yes'   },
+            { name: 'B', response: 'maybe' },
+        ];
+        const w = await initListWidget( responses, makeListHtml( { showMaybe: 'false' } ) );
+        expect( w.querySelectorAll( '.simplersvp-list-body tr' ).length ).toBe( 1 );
+        expect( w.querySelector( '.simplersvp-list-badge' ).classList.contains( 'simplersvp-list-badge-yes' ) ).toBe( true );
+    } );
+
+    test( 'hides anonymous rows when show_anonymous=false', async () => {
+        const responses = [
+            { name: 'Alice', response: 'yes' },
+            { name: '',      response: 'no'  },
+        ];
+        const w = await initListWidget( responses, makeListHtml( { showAnonymous: 'false' } ) );
+        expect( w.querySelectorAll( '.simplersvp-list-body tr' ).length ).toBe( 1 );
+        expect( w.querySelector( '.simplersvp-list-name' ).textContent ).toBe( 'Alice' );
+    } );
+
+    test( 'shows empty state when all rows are filtered out', async () => {
+        const w = await initListWidget(
+            [ { name: '', response: 'yes' } ],
+            makeListHtml( { showAnonymous: 'false' } )
+        );
+        expect( w.querySelector( '.simplersvp-list-empty' ).hidden ).toBe( false );
+        expect( w.querySelector( '.simplersvp-list-table' ).hidden ).toBe( true );
+    } );
+} );
+
+// ── List widget: request shape ────────────────────────────────────────────────
+
+describe( 'list widget — request shape', () => {
+    beforeEach( () => localStorage.clear() );
+
+    test( 'fetches from simplersvp_get_responses action', async () => {
+        await initListWidget();
+        const calledUrl = global.fetch.mock.calls[0][0];
+        expect( calledUrl ).toContain( 'action=simplersvp_get_responses' );
+    } );
+
+    test( 'includes the correct post_id in the request', async () => {
+        await initListWidget( [], makeListHtml( { postId: '77' } ) );
+        expect( global.fetch.mock.calls[0][0] ).toContain( 'post_id=77' );
+    } );
+
+    test( 'includes the nonce in the request', async () => {
+        await initListWidget();
+        expect( global.fetch.mock.calls[0][0] ).toContain( 'nonce=test-nonce-abc123' );
+    } );
+} );
+
+// ── List widget: polling ──────────────────────────────────────────────────────
+
+describe( 'list widget — polling', () => {
+    beforeEach( () => {
+        localStorage.clear();
+        jest.useFakeTimers();
+    } );
+    afterEach( () => jest.useRealTimers() );
+
+    test( 'polls for fresh data after 10 seconds', async () => {
+        await initListWidget();
+        const before = global.fetch.mock.calls.length;
+
+        jest.advanceTimersByTime( 10000 );
+        await Promise.resolve();
+
+        expect( global.fetch.mock.calls.length ).toBeGreaterThan( before );
+    } );
+
+    test( 'poll request targets simplersvp_get_responses', async () => {
+        await initListWidget();
+        jest.advanceTimersByTime( 10000 );
+        await Promise.resolve();
+
+        const lastUrl = global.fetch.mock.calls.at( -1 )[0];
+        expect( lastUrl ).toContain( 'action=simplersvp_get_responses' );
+    } );
+} );
