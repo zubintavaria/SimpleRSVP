@@ -3,7 +3,7 @@
  * Plugin Name: SimpleRSVP
  * Plugin URI:  https://github.com/zubintavaria/simplersvp
  * Description: Embed a simple RSVP widget on any post or page using [simplersvp].
- * Version:     1.1.0
+ * Version:     1.2.0
  * Author:      SimpleRSVP
  * License:     GPL-2.0-or-later
  * Text Domain: simplersvp
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SIMPLERSVP_VERSION', '1.1.0' );
+define( 'SIMPLERSVP_VERSION', '1.2.0' );
 define( 'SIMPLERSVP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SIMPLERSVP_URL', plugin_dir_url( __FILE__ ) );
 

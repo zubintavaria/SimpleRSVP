@@ -2,7 +2,7 @@
 
 A lightweight WordPress plugin that adds a simple, embeddable RSVP widget to any post or page via a shortcode.
 
-**[Download simplersvp-1.1.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.1.0.zip)**
+**[Download simplersvp-1.2.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.2.0.zip)**
 
 Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device gets one response. Live counts update automatically as others respond, and anyone can change their answer at any time. An admin dashboard shows headcounts and named responses per event.
 
@@ -32,7 +32,7 @@ Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device 
 
 ### Option A — Upload via WordPress admin (recommended)
 
-1. **[Download simplersvp-1.1.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.1.0.zip)**
+1. **[Download simplersvp-1.2.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.2.0.zip)**
 2. In your WordPress admin go to **Plugins → Add New → Upload Plugin**
 3. Choose the downloaded ZIP and click **Install Now**
 4. Click **Activate Plugin**
@@ -99,6 +99,38 @@ Yes / No only:
 Custom everything:
 ```
 [simplersvp question="Dinner on Saturday?" yes="I'll be there" no="Sorry, can't" maybe="Not sure yet"]
+```
+
+Both shortcodes on the same page (the list auto-updates as responses come in):
+```
+[simplersvp question="Coming to dinner?"]
+[simplersvp_list title="Who's coming so far?"]
+```
+
+---
+
+## `[simplersvp_list]` — Public respondents table
+
+Embeds a live table of names and responses, visible to all visitors.
+
+### Parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `post_id` | current post | Which post's responses to display |
+| `title` | `Responses` | Heading above the table (set to empty `""` to hide) |
+| `yes` | `Yes` | Label for Yes responses |
+| `no` | `No` | Label for No responses |
+| `maybe` | `Maybe` | Label for Maybe responses |
+| `show_maybe` | `true` | Set to `false` to hide Maybe rows |
+| `show_anonymous` | `true` | Set to `false` to hide rows where no name was entered |
+
+### Examples
+
+```
+[simplersvp_list]
+[simplersvp_list title="Current RSVPs" show_anonymous="false"]
+[simplersvp_list post_id="42" show_maybe="false"]
 ```
 
 ---
@@ -182,6 +214,10 @@ Covers:
 ---
 
 ## Changelog
+
+### 1.2.0
+- **Admin: Delete individual responses** — each row in the per-event detail table now has a "Delete" button. Clicking prompts a confirm dialog then removes that single response. A success notice confirms deletion.
+- **`[simplersvp_list]` shortcode** — embed a live-updating public table of names and responses anywhere on the page. Supports `title`, `show_maybe`, and `show_anonymous` parameters. Updates every 10 seconds, stays in sync with the RSVP widget when both appear on the same page.
 
 ### 1.1.0
 - **Admin: Reset Counters** — each event in the admin dashboard now has a "Reset Counters" button (detail view) and a compact "Reset" link (list view). Clicking prompts a confirmation dialog, then deletes all RSVP records for that event and shows a success notice.
