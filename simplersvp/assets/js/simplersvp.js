@@ -236,5 +236,93 @@
 
 	document.addEventListener( 'DOMContentLoaded', function () {
 		document.querySelectorAll( '.simplersvp-widget' ).forEach( initWidget );
+		document.querySelectorAll( '.simplersvp-list-widget' ).forEach( initListWidget );
 	} );
+
+	// ── List widget ────────────────────────────────────────────────────────
+
+	function initListWidget( widget ) {
+		var postId         = widget.dataset.postId;
+		var showMaybe      = widget.dataset.showMaybe      !== 'false';
+		var showAnonymous  = widget.dataset.showAnonymous  !== 'false';
+
+		var labels = {
+			yes:   widget.dataset.yes   || 'Yes',
+			no:    widget.dataset.no    || 'No',
+			maybe: widget.dataset.maybe || 'Maybe',
+		};
+
+		var loadingEl = widget.querySelector( '.simplersvp-list-loading' );
+		var emptyEl   = widget.querySelector( '.simplersvp-list-empty' );
+		var table     = widget.querySelector( '.simplersvp-list-table' );
+		var tbody     = widget.querySelector( '.simplersvp-list-body' );
+
+		function buildUrl() {
+			return (
+				SimpleRSVP.ajax_url +
+				'?action=simplersvp_get_responses' +
+				'&nonce='   + encodeURIComponent( SimpleRSVP.nonce ) +
+				'&post_id=' + encodeURIComponent( postId )
+			);
+		}
+
+		/** Minimal HTML escaping for user-supplied strings rendered via innerHTML. */
+		function escHtml( str ) {
+			return String( str )
+				.replace( /&/g,  '&amp;' )
+				.replace( /</g,  '&lt;' )
+				.replace( />/g,  '&gt;' )
+				.replace( /"/g,  '&quot;' )
+				.replace( /'/g,  '&#039;' );
+		}
+
+		function render( responses ) {
+			// Apply client-side filters.
+			var visible = responses.filter( function ( r ) {
+				if ( ! showMaybe     && r.response === 'maybe' ) { return false; }
+				if ( ! showAnonymous && ! r.name )                { return false; }
+				return true;
+			} );
+
+			if ( loadingEl ) { loadingEl.hidden = true; }
+
+			if ( visible.length === 0 ) {
+				if ( emptyEl  ) { emptyEl.hidden  = false; }
+				if ( table    ) { table.hidden    = true;  }
+				return;
+			}
+
+			if ( emptyEl ) { emptyEl.hidden = true;  }
+			if ( table   ) { table.hidden   = false; }
+
+			tbody.innerHTML = visible.map( function ( entry ) {
+				var name  = entry.name ? escHtml( entry.name ) : '<em>(anonymous)</em>';
+				var resp  = entry.response;
+				var label = escHtml( labels[ resp ] || resp );
+				return (
+					'<tr>' +
+					'<td class="simplersvp-list-name">' + name + '</td>' +
+					'<td class="simplersvp-list-response">' +
+					'<span class="simplersvp-list-badge simplersvp-list-badge-' + escHtml( resp ) + '">' +
+					label +
+					'</span>' +
+					'</td>' +
+					'</tr>'
+				);
+			} ).join( '' );
+		}
+
+		function fetchResponses() {
+			fetch( buildUrl() )
+				.then( function ( r ) { return r.json(); } )
+				.then( function ( data ) {
+					if ( data.success ) { render( data.data.responses ); }
+				} )
+				.catch( function () {} );
+		}
+
+		fetchResponses();
+		setInterval( fetchResponses, 10000 );
+	}
+
 } )();

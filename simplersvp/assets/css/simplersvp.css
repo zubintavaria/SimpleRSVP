@@ -199,6 +199,101 @@
 	cursor:  wait;
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   Respondents list widget  [simplersvp_list]
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.simplersvp-list-widget {
+	font-family: inherit;
+	color:       inherit;
+	max-width:   520px;
+	margin:      1.5rem 0;
+}
+
+.simplersvp-list-card {
+	border:        1px solid var(--srsvp-border, rgba(0,0,0,.15));
+	border-radius: var(--srsvp-radius, 8px);
+	padding:       1.5rem;
+	background:    transparent;
+}
+
+/* ── Heading ─────────────────────────────────────────────────────────────── */
+
+.simplersvp-list-title {
+	font-size:   1.1em;
+	font-weight: 600;
+	margin:      0 0 1rem;
+	color:       inherit;
+}
+
+/* ── Loading / empty states ──────────────────────────────────────────────── */
+
+.simplersvp-list-loading,
+.simplersvp-list-empty {
+	margin:   0;
+	opacity:  0.6;
+	font-size: 0.9em;
+}
+
+/* ── Table ───────────────────────────────────────────────────────────────── */
+
+.simplersvp-list-table {
+	width:           100%;
+	border-collapse: collapse;
+	margin-top:      0.25rem;
+	font-size:       0.95em;
+}
+
+.simplersvp-list-table th {
+	text-align:     left;
+	padding:        0.4rem 0.6rem;
+	font-size:      0.75em;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	opacity:        0.6;
+	border-bottom:  1px solid var(--srsvp-border, rgba(0,0,0,.12));
+}
+
+.simplersvp-list-table td {
+	padding:       0.5rem 0.6rem;
+	border-bottom: 1px solid var(--srsvp-border, rgba(0,0,0,.06));
+	vertical-align: middle;
+}
+
+.simplersvp-list-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.simplersvp-list-th-name     { width: 60%; }
+.simplersvp-list-th-response { width: 40%; }
+
+/* ── Response badge pills ────────────────────────────────────────────────── */
+
+.simplersvp-list-badge {
+	display:       inline-block;
+	padding:       0.2em 0.7em;
+	border-radius: 999px;
+	font-size:     0.85em;
+	font-weight:   600;
+	line-height:   1.4;
+	white-space:   nowrap;
+}
+
+.simplersvp-list-badge-yes {
+	background: rgba(46, 125, 50, 0.12);
+	color:      var(--srsvp-yes-color, #2e7d32);
+}
+
+.simplersvp-list-badge-no {
+	background: rgba(198, 40, 40, 0.12);
+	color:      var(--srsvp-no-color, #c62828);
+}
+
+.simplersvp-list-badge-maybe {
+	background: rgba(230, 81, 0, 0.12);
+	color:      var(--srsvp-maybe-color, #e65100);
+}
+
 /* ── Accessibility: respect reduced motion ──────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {

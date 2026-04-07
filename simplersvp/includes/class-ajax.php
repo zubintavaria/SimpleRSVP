@@ -16,8 +16,9 @@ class SimpleRSVP_Ajax {
 
 	public static function register() {
 		foreach ( array( 'wp_ajax_', 'wp_ajax_nopriv_' ) as $prefix ) {
-			add_action( $prefix . 'simplersvp_submit',     array( __CLASS__, 'handle_submit' ) );
-			add_action( $prefix . 'simplersvp_get_counts', array( __CLASS__, 'handle_get_counts' ) );
+			add_action( $prefix . 'simplersvp_submit',        array( __CLASS__, 'handle_submit' ) );
+			add_action( $prefix . 'simplersvp_get_counts',    array( __CLASS__, 'handle_get_counts' ) );
+			add_action( $prefix . 'simplersvp_get_responses', array( __CLASS__, 'handle_get_responses' ) );
 		}
 	}
 
@@ -98,5 +99,31 @@ class SimpleRSVP_Ajax {
 			'response' => $existing,
 			'name'     => $name,
 		) );
+	}
+
+	/**
+	 * Return the public list of names + responses for a post (GET).
+	 *
+	 * Device IDs are never exposed — only display name and response value.
+	 */
+	public static function handle_get_responses() {
+		check_ajax_referer( 'simplersvp_nonce', 'nonce' );
+
+		$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
+
+		if ( ! $post_id ) {
+			wp_send_json_error( array( 'message' => 'Invalid post.' ), 400 );
+			return;
+		}
+
+		$rows      = SimpleRSVP_Database::get_all_for_post( $post_id );
+		$responses = array_map( function ( $row ) {
+			return array(
+				'name'     => $row['name'],
+				'response' => $row['response'],
+			);
+		}, $rows );
+
+		wp_send_json_success( array( 'responses' => $responses ) );
 	}
 }

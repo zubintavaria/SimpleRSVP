@@ -15,19 +15,14 @@ class SimpleRSVP_Admin {
 			'dashicons-calendar-alt',
 			30
 		);
-		add_action( 'admin_post_simplersvp_reset', array( __CLASS__, 'handle_reset' ) );
+		add_action( 'admin_post_simplersvp_reset',           array( __CLASS__, 'handle_reset' ) );
+		add_action( 'admin_post_simplersvp_delete_response', array( __CLASS__, 'handle_delete_response' ) );
 	}
 
 	// -------------------------------------------------------------------------
-	// Reset handler
+	// Reset all responses for an event
 	// -------------------------------------------------------------------------
 
-	/**
-	 * Handle the "Reset Counters" form submission.
-	 *
-	 * Registered as admin_post_simplersvp_reset, so WordPress routes the
-	 * admin-post.php POST here before any page is rendered.
-	 */
 	public static function handle_reset() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have permission to perform this action.', 'simplersvp' ) );
@@ -46,6 +41,38 @@ class SimpleRSVP_Admin {
 		wp_safe_redirect(
 			add_query_arg(
 				array( 'page' => 'simplersvp', 'post_id' => $post_id, 'srsvp_reset' => '1' ),
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	// -------------------------------------------------------------------------
+	// Delete a single response
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Handle the per-row "Delete" form submission.
+	 */
+	public static function handle_delete_response() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'simplersvp' ) );
+		}
+
+		$entry_id = isset( $_POST['entry_id'] ) ? absint( $_POST['entry_id'] ) : 0;
+		$post_id  = isset( $_POST['post_id'] )  ? absint( $_POST['post_id'] )  : 0;
+
+		if ( ! $entry_id || ! $post_id ) {
+			wp_die( esc_html__( 'Invalid request.', 'simplersvp' ) );
+		}
+
+		check_admin_referer( 'simplersvp_delete_response_' . $entry_id, 'simplersvp_delete_nonce' );
+
+		SimpleRSVP_Database::delete_by_id( $entry_id );
+
+		wp_safe_redirect(
+			add_query_arg(
+				array( 'page' => 'simplersvp', 'post_id' => $post_id, 'srsvp_deleted' => '1' ),
 				admin_url( 'admin.php' )
 			)
 		);
@@ -158,6 +185,12 @@ class SimpleRSVP_Admin {
 				</div>
 			<?php endif; ?>
 
+			<?php if ( isset( $_GET['srsvp_deleted'] ) && $_GET['srsvp_deleted'] === '1' ) : ?>
+				<div class="notice notice-success is-dismissible">
+					<p><?php esc_html_e( 'Response deleted.', 'simplersvp' ); ?></p>
+				</div>
+			<?php endif; ?>
+
 			<p>
 				<a href="<?php echo esc_url( $back_url ); ?>">&larr; <?php esc_html_e( 'Back to all events', 'simplersvp' ); ?></a>
 			</p>
@@ -213,6 +246,7 @@ class SimpleRSVP_Admin {
 							<th><?php esc_html_e( 'Name', 'simplersvp' ); ?></th>
 							<th style="width:120px;"><?php esc_html_e( 'Response', 'simplersvp' ); ?></th>
 							<th style="width:200px;"><?php esc_html_e( 'Last Updated', 'simplersvp' ); ?></th>
+							<th style="width:80px;"></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -227,6 +261,7 @@ class SimpleRSVP_Admin {
 									<?php echo esc_html( $label ); ?>
 								</td>
 								<td><?php echo esc_html( $entry['updated_at'] ); ?></td>
+								<td><?php self::delete_response_form( (int) $entry['id'], $post_id ); ?></td>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
@@ -237,14 +272,14 @@ class SimpleRSVP_Admin {
 	}
 
 	// -------------------------------------------------------------------------
-	// Shared reset form helper
+	// Shared form helpers
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Render a small "Reset Counters" form.
+	 * Render the "Reset Counters" form.
 	 *
-	 * @param int  $post_id  The event post ID to reset.
-	 * @param bool $compact  true = inline link style (list view), false = button (detail view).
+	 * @param int  $post_id
+	 * @param bool $compact  true = link style (list view), false = button (detail view).
 	 */
 	public static function reset_form( $post_id, $compact = false ) {
 		$confirm_msg = esc_js(
@@ -259,18 +294,38 @@ class SimpleRSVP_Admin {
 			<input type="hidden" name="action"  value="simplersvp_reset">
 			<input type="hidden" name="post_id" value="<?php echo esc_attr( $post_id ); ?>">
 			<?php if ( $compact ) : ?>
-				<button type="submit"
-				        class="button-link"
-				        style="color:#b32d2e;">
+				<button type="submit" class="button-link" style="color:#b32d2e;">
 					<?php esc_html_e( 'Reset', 'simplersvp' ); ?>
 				</button>
 			<?php else : ?>
-				<button type="submit"
-				        class="button button-secondary"
-				        style="color:#b32d2e;border-color:#b32d2e;">
+				<button type="submit" class="button button-secondary" style="color:#b32d2e;border-color:#b32d2e;">
 					<?php esc_html_e( 'Reset Counters', 'simplersvp' ); ?>
 				</button>
 			<?php endif; ?>
+		</form>
+		<?php
+	}
+
+	/**
+	 * Render the per-row "Delete" form for a single response.
+	 *
+	 * @param int $entry_id  Primary key of the row to delete.
+	 * @param int $post_id   Parent post (for redirect target).
+	 */
+	public static function delete_response_form( $entry_id, $post_id ) {
+		$confirm_msg = esc_js( __( 'Delete this response? This cannot be undone.', 'simplersvp' ) );
+		?>
+		<form method="post"
+		      action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"
+		      style="display:inline;"
+		      onsubmit="return confirm('<?php echo $confirm_msg; ?>')">
+			<?php wp_nonce_field( 'simplersvp_delete_response_' . $entry_id, 'simplersvp_delete_nonce' ); ?>
+			<input type="hidden" name="action"   value="simplersvp_delete_response">
+			<input type="hidden" name="entry_id" value="<?php echo esc_attr( $entry_id ); ?>">
+			<input type="hidden" name="post_id"  value="<?php echo esc_attr( $post_id ); ?>">
+			<button type="submit" class="button-link" style="color:#b32d2e;">
+				<?php esc_html_e( 'Delete', 'simplersvp' ); ?>
+			</button>
 		</form>
 		<?php
 	}

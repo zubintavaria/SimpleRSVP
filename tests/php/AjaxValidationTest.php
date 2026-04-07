@@ -294,4 +294,73 @@ class AjaxValidationTest extends TestCase {
         $this->assertSame( 0, $json['data']['counts']['maybe'] );
         $this->assertSame( '', $json['data']['response'] );
     }
+
+    // ── handle_get_responses ─────────────────────────────────────────────────
+
+    public function test_get_responses_rejects_zero_post_id(): void {
+        $_GET = [ 'post_id' => '0' ];
+        SimpleRSVP_Ajax::handle_get_responses();
+        $this->assertFalse( $this->lastJson()['success'] );
+        $this->assertSame( 400, $this->lastJson()['status'] );
+    }
+
+    public function test_get_responses_rejects_missing_post_id(): void {
+        $_GET = [];
+        SimpleRSVP_Ajax::handle_get_responses();
+        $this->assertFalse( $this->lastJson()['success'] );
+    }
+
+    public function test_get_responses_returns_name_and_response_only(): void {
+        global $wpdb;
+        // Simulate DB returning rows that include id and device_id — handler must strip them.
+        $wpdb->__get_results_queue = [ [
+            [ 'id' => '1', 'device_id' => 'secret-uuid', 'name' => 'Alice', 'response' => 'yes', 'updated_at' => '2025-01-01' ],
+            [ 'id' => '2', 'device_id' => 'other-uuid',  'name' => '',      'response' => 'no',  'updated_at' => '2025-01-01' ],
+        ] ];
+
+        $_GET = [ 'post_id' => '5' ];
+        SimpleRSVP_Ajax::handle_get_responses();
+
+        $json      = $this->lastJson();
+        $responses = $json['data']['responses'];
+
+        $this->assertTrue( $json['success'] );
+        $this->assertCount( 2, $responses );
+
+        // Sensitive fields must not be present.
+        $this->assertArrayNotHasKey( 'id',         $responses[0] );
+        $this->assertArrayNotHasKey( 'device_id',  $responses[0] );
+        $this->assertArrayNotHasKey( 'updated_at', $responses[0] );
+
+        // Only safe fields are exposed.
+        $this->assertArrayHasKey( 'name',     $responses[0] );
+        $this->assertArrayHasKey( 'response', $responses[0] );
+        $this->assertSame( 'Alice', $responses[0]['name'] );
+        $this->assertSame( 'yes',   $responses[0]['response'] );
+    }
+
+    public function test_get_responses_returns_empty_array_when_no_rows(): void {
+        global $wpdb;
+        $wpdb->__get_results_queue = [ [] ];
+
+        $_GET = [ 'post_id' => '5' ];
+        SimpleRSVP_Ajax::handle_get_responses();
+
+        $json = $this->lastJson();
+        $this->assertTrue( $json['success'] );
+        $this->assertSame( [], $json['data']['responses'] );
+    }
+
+    public function test_get_responses_preserves_empty_name_for_anonymous_entries(): void {
+        global $wpdb;
+        $wpdb->__get_results_queue = [ [
+            [ 'id' => '3', 'name' => '', 'response' => 'maybe', 'updated_at' => '2025-01-01' ],
+        ] ];
+
+        $_GET = [ 'post_id' => '5' ];
+        SimpleRSVP_Ajax::handle_get_responses();
+
+        $json = $this->lastJson();
+        $this->assertSame( '', $json['data']['responses'][0]['name'] );
+    }
 }

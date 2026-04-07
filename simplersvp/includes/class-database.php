@@ -158,11 +158,22 @@ class SimpleRSVP_Database {
 		$table = self::table();
 		return $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT name, response, updated_at FROM {$table} WHERE post_id = %d ORDER BY updated_at DESC",
+				"SELECT id, name, response, updated_at FROM {$table} WHERE post_id = %d ORDER BY updated_at DESC",
 				$post_id
 			),
 			ARRAY_A
 		);
+	}
+
+	/**
+	 * Delete a single RSVP entry by its primary key.
+	 *
+	 * @param int $id  Row ID to delete.
+	 */
+	public static function delete_by_id( $id ) {
+		global $wpdb;
+		$table = self::table();
+		$wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
 	}
 
 	/**
