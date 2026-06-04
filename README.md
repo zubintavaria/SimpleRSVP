@@ -2,7 +2,7 @@
 
 A lightweight WordPress plugin that adds a simple, embeddable RSVP widget to any post or page via a shortcode.
 
-**[Download simplersvp-1.2.1.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.2.1.zip)**
+**[Download simplersvp-1.2.2.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.2.2.zip)**
 
 Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device gets one response. Live counts update automatically as others respond, and anyone can change their answer at any time. An admin dashboard shows headcounts and named responses per event.
 
@@ -32,7 +32,7 @@ Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device 
 
 ### Option A — Upload via WordPress admin (recommended)
 
-1. **[Download simplersvp-1.2.1.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.2.1.zip)**
+1. **[Download simplersvp-1.2.2.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.2.2.zip)**
 2. In your WordPress admin go to **Plugins → Add New → Upload Plugin**
 3. Choose the downloaded ZIP and click **Install Now**
 4. Click **Activate Plugin**
@@ -204,7 +204,7 @@ Covers:
 
 | Concern | Mitigation |
 |---|---|
-| CSRF | WordPress nonce on every AJAX request (`wp_create_nonce` / `check_ajax_referer`) |
+| CSRF | Not applicable to public AJAX endpoints (no auth credentials); admin forms use `check_admin_referer` |
 | Input injection | `absint`, `sanitize_text_field`, `sanitize_key`, `wp_unslash` on all inputs |
 | Fake device IDs | UUID v4 format validated server-side with a strict regex |
 | Spam / flooding | Transient-based rate limit: max 10 submissions per device per minute |
@@ -214,6 +214,10 @@ Covers:
 ---
 
 ## Changelog
+
+### 1.2.2
+- **Bug fix: RSVP widget stops working after ~12 hours on cached sites.** Removed nonce verification from the three public AJAX endpoints. WordPress nonces baked into cached pages expire after ~12 hours, causing every AJAX call to silently fail (counts stayed at 0, button clicks did nothing). The plugin's existing protections — UUID validation, rate limiting, and input sanitisation — are sufficient for these read/write endpoints. Admin forms retain their nonces.
+- **Improvement: assets now enqueued early** via `has_shortcode` detection in `wp_enqueue_scripts`, so full-page caching plugins reliably capture the script tag on the first render.
 
 ### 1.2.1
 - **Bug fix: Reset Counters and Delete buttons now work correctly.** The `admin_post_*` handlers were being registered inside `admin_menu`, which does not fire during `admin-post.php` requests. Moved registration to `admin_init` so the handlers are always available when forms are submitted.

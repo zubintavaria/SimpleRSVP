@@ -127,7 +127,6 @@
 			return (
 				SimpleRSVP.ajax_url +
 				'?action=simplersvp_get_counts' +
-				'&nonce=' + encodeURIComponent( SimpleRSVP.nonce ) +
 				'&post_id=' + encodeURIComponent( postId ) +
 				'&device_id=' + encodeURIComponent( deviceId )
 			);
@@ -163,7 +162,6 @@
 
 			var body = new URLSearchParams( {
 				action:    'simplersvp_submit',
-				nonce:     SimpleRSVP.nonce,
 				post_id:   postId,
 				device_id: deviceId,
 				name:      name,
@@ -261,7 +259,6 @@
 			return (
 				SimpleRSVP.ajax_url +
 				'?action=simplersvp_get_responses' +
-				'&nonce='   + encodeURIComponent( SimpleRSVP.nonce ) +
 				'&post_id=' + encodeURIComponent( postId )
 			);
 		}

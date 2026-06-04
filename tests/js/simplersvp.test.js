@@ -318,7 +318,7 @@ describe( 'RSVP submission', () => {
         expect( options.method ).toBe( 'POST' );
         expect( options.body ).toContain( 'action=simplersvp_submit' );
         expect( options.body ).toContain( 'response=yes' );
-        expect( options.body ).toContain( 'nonce=test-nonce-abc123' );
+        expect( options.body ).not.toContain( 'nonce=' );
     } );
 
     test( 'POST body includes the post_id', async () => {
@@ -600,9 +600,9 @@ describe( 'list widget — request shape', () => {
         expect( global.fetch.mock.calls[0][0] ).toContain( 'post_id=77' );
     } );
 
-    test( 'includes the nonce in the request', async () => {
+    test( 'does not include a nonce in the request', async () => {
         await initListWidget();
-        expect( global.fetch.mock.calls[0][0] ).toContain( 'nonce=test-nonce-abc123' );
+        expect( global.fetch.mock.calls[0][0] ).not.toContain( 'nonce=' );
     } );
 } );
 

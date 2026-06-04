@@ -3,7 +3,7 @@
  * Plugin Name: SimpleRSVP
  * Plugin URI:  https://github.com/zubintavaria/simplersvp
  * Description: Embed a simple RSVP widget on any post or page using [simplersvp].
- * Version:     1.2.1
+ * Version:     1.2.2
  * Author:      SimpleRSVP
  * License:     GPL-2.0-or-later
  * Text Domain: simplersvp
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SIMPLERSVP_VERSION', '1.2.1' );
+define( 'SIMPLERSVP_VERSION', '1.2.2' );
 define( 'SIMPLERSVP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SIMPLERSVP_URL', plugin_dir_url( __FILE__ ) );
 
@@ -47,6 +47,18 @@ function simplersvp_enqueue_assets() {
 	);
 	wp_localize_script( 'simplersvp', 'SimpleRSVP', array(
 		'ajax_url' => admin_url( 'admin-ajax.php' ),
-		'nonce'    => wp_create_nonce( 'simplersvp_nonce' ),
 	) );
+
+	// Enqueue early when the post content contains either shortcode so that
+	// the assets are captured correctly by full-page caching plugins.
+	if ( is_singular() ) {
+		$post = get_queried_object();
+		if ( $post instanceof WP_Post && (
+			has_shortcode( $post->post_content, 'simplersvp' ) ||
+			has_shortcode( $post->post_content, 'simplersvp_list' )
+		) ) {
+			wp_enqueue_style( 'simplersvp' );
+			wp_enqueue_script( 'simplersvp' );
+		}
+	}
 }

@@ -26,8 +26,6 @@ class SimpleRSVP_Ajax {
 	 * Handle RSVP submission (POST).
 	 */
 	public static function handle_submit() {
-		check_ajax_referer( 'simplersvp_nonce', 'nonce' );
-
 		$post_id   = isset( $_POST['post_id'] )   ? absint( $_POST['post_id'] )                   : 0;
 		$device_id = isset( $_POST['device_id'] ) ? sanitize_text_field( wp_unslash( $_POST['device_id'] ) ) : '';
 		$name      = isset( $_POST['name'] )      ? sanitize_text_field( wp_unslash( $_POST['name'] ) )      : '';
@@ -75,8 +73,6 @@ class SimpleRSVP_Ajax {
 	 * Return current counts (and this device's existing response) for a post (GET).
 	 */
 	public static function handle_get_counts() {
-		check_ajax_referer( 'simplersvp_nonce', 'nonce' );
-
 		$post_id   = isset( $_GET['post_id'] )   ? absint( $_GET['post_id'] )                    : 0;
 		$device_id = isset( $_GET['device_id'] ) ? sanitize_text_field( wp_unslash( $_GET['device_id'] ) ) : '';
 
@@ -107,8 +103,6 @@ class SimpleRSVP_Ajax {
 	 * Device IDs are never exposed — only display name and response value.
 	 */
 	public static function handle_get_responses() {
-		check_ajax_referer( 'simplersvp_nonce', 'nonce' );
-
 		$post_id = isset( $_GET['post_id'] ) ? absint( $_GET['post_id'] ) : 0;
 
 		if ( ! $post_id ) {
