@@ -155,6 +155,34 @@ class ShortcodeTest extends TestCase {
         $this->assertStringContainsString( 'simplersvp-count-no',  $html );
     }
 
+    // ── require_name ─────────────────────────────────────────────────────────
+
+    public function test_require_name_defaults_to_false(): void {
+        $html = $this->render();
+        $this->assertStringContainsString( 'data-require-name="false"', $html );
+    }
+
+    public function test_require_name_true_sets_data_attribute(): void {
+        $html = $this->render( [ 'require_name' => 'true' ] );
+        $this->assertStringContainsString( 'data-require-name="true"', $html );
+    }
+
+    public function test_placeholder_says_optional_by_default(): void {
+        $html = $this->render();
+        $this->assertStringContainsString( 'Your name (optional)', $html );
+        $this->assertStringNotContainsString( 'Your name (required)', $html );
+    }
+
+    public function test_placeholder_says_required_when_require_name_true(): void {
+        $html = $this->render( [ 'require_name' => 'true' ] );
+        $this->assertStringContainsString( 'Your name (required)', $html );
+    }
+
+    public function test_error_span_is_present_in_output(): void {
+        $html = $this->render();
+        $this->assertStringContainsString( 'simplersvp-name-error', $html );
+    }
+
     // ── XSS: custom attribute values are escaped ──────────────────────────
 
     public function test_xss_in_question_is_escaped(): void {

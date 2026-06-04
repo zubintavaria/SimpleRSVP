@@ -2,7 +2,7 @@
 
 A lightweight WordPress plugin that adds a simple, embeddable RSVP widget to any post or page via a shortcode.
 
-**[Download simplersvp-1.2.2.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.2.2.zip)**
+**[Download simplersvp-1.3.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.3.0.zip)**
 
 Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device gets one response. Live counts update automatically as others respond, and anyone can change their answer at any time. An admin dashboard shows headcounts and named responses per event.
 
@@ -32,7 +32,7 @@ Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device 
 
 ### Option A — Upload via WordPress admin (recommended)
 
-1. **[Download simplersvp-1.2.2.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.2.2.zip)**
+1. **[Download simplersvp-1.3.0.zip](https://github.com/zubintavaria/SimpleRSVP/raw/main/dist/simplersvp-1.3.0.zip)**
 2. In your WordPress admin go to **Plugins → Add New → Upload Plugin**
 3. Choose the downloaded ZIP and click **Install Now**
 4. Click **Activate Plugin**
@@ -78,6 +78,7 @@ All parameters are optional.
 | `no` | `No` | Label for the No button |
 | `maybe` | `Maybe` | Label for the Maybe button |
 | `show_maybe` | `true` | Set to `false` to hide the Maybe option entirely |
+| `require_name` | `false` | Set to `true` to make the name field mandatory before a response can be submitted |
 
 ### Examples
 
@@ -214,6 +215,9 @@ Covers:
 ---
 
 ## Changelog
+
+### 1.3.0
+- **New: `require_name` shortcode parameter** — add `require_name="true"` to any `[simplersvp]` shortcode to make the name field mandatory. The placeholder text updates to reflect this, and clicking a response button without filling in a name shows an inline error and focuses the field. Defaults to `false` so existing events are unaffected.
 
 ### 1.2.2
 - **Bug fix: RSVP widget stops working after ~12 hours on cached sites.** Removed nonce verification from the three public AJAX endpoints. WordPress nonces baked into cached pages expire after ~12 hours, causing every AJAX call to silently fail (counts stayed at 0, button clicks did nothing). The plugin's existing protections — UUID validation, rate limiting, and input sanitisation — are sufficient for these read/write endpoints. Admin forms retain their nonces.

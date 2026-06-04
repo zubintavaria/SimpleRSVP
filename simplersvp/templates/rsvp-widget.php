@@ -16,19 +16,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 	 data-yes="<?php echo esc_attr( $atts['yes'] ); ?>"
 	 data-no="<?php echo esc_attr( $atts['no'] ); ?>"
 	 data-maybe="<?php echo esc_attr( $atts['maybe'] ); ?>"
-	 data-show-maybe="<?php echo $show_maybe ? 'true' : 'false'; ?>">
+	 data-show-maybe="<?php echo $show_maybe ? 'true' : 'false'; ?>"
+	 data-require-name="<?php echo $require_name ? 'true' : 'false'; ?>">
 
 	<div class="simplersvp-card">
 
 		<p class="simplersvp-question"><?php echo esc_html( $atts['question'] ); ?></p>
 
-		<!-- Optional name input -->
+		<!-- Name input (optional or required depending on shortcode attribute) -->
 		<div class="simplersvp-name-row">
 			<input type="text"
 				   class="simplersvp-name-input"
-				   placeholder="<?php esc_attr_e( 'Your name (optional)', 'simplersvp' ); ?>"
+				   placeholder="<?php echo $require_name ? esc_attr__( 'Your name (required)', 'simplersvp' ) : esc_attr__( 'Your name (optional)', 'simplersvp' ); ?>"
 				   maxlength="100"
 				   autocomplete="name" />
+			<span class="simplersvp-name-error" hidden>
+				<?php esc_html_e( 'Please enter your name.', 'simplersvp' ); ?>
+			</span>
 		</div>
 
 		<!-- Response buttons (visible before submission) -->

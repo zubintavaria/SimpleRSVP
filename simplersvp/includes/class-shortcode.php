@@ -28,18 +28,20 @@ class SimpleRSVP_Shortcode {
 	public static function render( $atts ) {
 		$atts = shortcode_atts(
 			array(
-				'question'   => 'Will you attend?',
-				'yes'        => 'Yes',
-				'no'         => 'No',
-				'maybe'      => 'Maybe',
-				'show_maybe' => 'true',
+				'question'     => 'Will you attend?',
+				'yes'          => 'Yes',
+				'no'           => 'No',
+				'maybe'        => 'Maybe',
+				'show_maybe'   => 'true',
+				'require_name' => 'false',
 			),
 			$atts,
 			'simplersvp'
 		);
 
-		$post_id    = get_the_ID();
-		$show_maybe = filter_var( $atts['show_maybe'], FILTER_VALIDATE_BOOLEAN );
+		$post_id      = get_the_ID();
+		$show_maybe   = filter_var( $atts['show_maybe'],   FILTER_VALIDATE_BOOLEAN );
+		$require_name = filter_var( $atts['require_name'], FILTER_VALIDATE_BOOLEAN );
 
 		wp_enqueue_style( 'simplersvp' );
 		wp_enqueue_script( 'simplersvp' );

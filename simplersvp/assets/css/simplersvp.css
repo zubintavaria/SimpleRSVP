@@ -65,6 +65,13 @@
 	border-color: currentColor;
 }
 
+.simplersvp-name-error {
+	display:    block;
+	margin-top: 0.3rem;
+	font-size:  0.82em;
+	color:      var(--srsvp-no-color);
+}
+
 /* ── Response buttons ───────────────────────────────────────────────────── */
 
 .simplersvp-buttons {
