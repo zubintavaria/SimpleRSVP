@@ -39,7 +39,7 @@ Visitors can respond with **Yes**, **No**, or **Maybe** (optional). Each device 
 
 ### Option B — Manual install
 
-1. Download and unzip `simplersvp-1.0.0.zip`, or clone this repository:
+1. Download and unzip `simplersvp-1.3.0.zip`, or clone this repository:
    ```bash
    git clone https://github.com/zubintavaria/SimpleRSVP.git
    ```
@@ -99,7 +99,7 @@ Yes / No only:
 
 Custom everything:
 ```
-[simplersvp question="Dinner on Saturday?" yes="I'll be there" no="Sorry, can't" maybe="Not sure yet"]
+[simplersvp question="Dinner on Saturday?" yes="I'll be there" no="Sorry, can't" maybe="Not sure yet" require_name="true"]
 ```
 
 Both shortcodes on the same page (the list auto-updates as responses come in):
