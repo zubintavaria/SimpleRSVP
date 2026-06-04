@@ -54,8 +54,9 @@
 	// ── Per-widget initialisation ──────────────────────────────────────────
 
 	function initWidget( widget ) {
-		var postId   = widget.dataset.postId;
-		var deviceId = getDeviceId();
+		var postId      = widget.dataset.postId;
+		var deviceId    = getDeviceId();
+		var requireName = widget.dataset.requireName === 'true';
 
 		var labels = {
 			yes:   widget.dataset.yes,
@@ -65,6 +66,7 @@
 
 		// DOM refs
 		var nameInput    = widget.querySelector( '.simplersvp-name-input' );
+		var nameError    = widget.querySelector( '.simplersvp-name-error' );
 		var buttonsDiv   = widget.querySelector( '.simplersvp-buttons' );
 		var nameRow      = widget.querySelector( '.simplersvp-name-row' );
 		var buttons      = widget.querySelectorAll( '.simplersvp-btn' );
@@ -75,6 +77,14 @@
 		// Pre-fill name from localStorage.
 		if ( nameInput ) {
 			nameInput.value = getSavedName();
+			// Clear the error as soon as the user starts typing.
+			if ( requireName ) {
+				nameInput.addEventListener( 'input', function () {
+					if ( nameInput.value.trim() && nameError ) {
+						nameError.hidden = true;
+					}
+				} );
+			}
 		}
 
 		// ── UI state helpers ───────────────────────────────────────────────
@@ -156,6 +166,14 @@
 
 		function submitRsvp( response ) {
 			var name = nameInput ? nameInput.value.trim() : '';
+
+			if ( requireName && ! name ) {
+				if ( nameError ) { nameError.hidden = false; }
+				if ( nameInput ) { nameInput.focus(); }
+				return;
+			}
+			if ( nameError ) { nameError.hidden = true; }
+
 			persistName( name );
 
 			setButtonsDisabled( true );

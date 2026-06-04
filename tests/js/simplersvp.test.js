@@ -29,11 +29,12 @@ const scriptSrc   = fs.readFileSync( SCRIPT_PATH, 'utf8' );
  * Build a minimal widget HTML string matching the PHP template's structure.
  */
 function makeWidgetHtml( {
-    postId    = '42',
-    yes       = 'Yes',
-    no        = 'No',
-    maybe     = 'Maybe',
-    showMaybe = 'true',
+    postId      = '42',
+    yes         = 'Yes',
+    no          = 'No',
+    maybe       = 'Maybe',
+    showMaybe   = 'true',
+    requireName = 'false',
 } = {} ) {
     return `
     <div class="simplersvp-widget"
@@ -41,11 +42,13 @@ function makeWidgetHtml( {
          data-yes="${ yes }"
          data-no="${ no }"
          data-maybe="${ maybe }"
-         data-show-maybe="${ showMaybe }">
+         data-show-maybe="${ showMaybe }"
+         data-require-name="${ requireName }">
       <div class="simplersvp-card">
         <p class="simplersvp-question">Will you attend?</p>
         <div class="simplersvp-name-row">
           <input type="text" class="simplersvp-name-input" />
+          <span class="simplersvp-name-error" hidden>Please enter your name.</span>
         </div>
         <div class="simplersvp-buttons">
           <button class="simplersvp-btn simplersvp-btn-yes" data-value="yes" type="button">Yes</button>
@@ -413,6 +416,76 @@ describe( 'polling', () => {
         await Promise.resolve();
 
         expect( global.fetch.mock.calls.length ).toBe( callsBefore );
+    } );
+} );
+
+// ── require_name validation ───────────────────────────────────────────────────
+
+describe( 'require_name validation', () => {
+    beforeEach( () => localStorage.clear() );
+
+    test( 'name is optional by default — empty name does not block submit', async () => {
+        const widget = await initWidget( makeWidgetHtml( { requireName: 'false' } ) );
+        global.fetch = makeFetchMock( { success: true, data: { counts: { yes: 1, no: 0, maybe: 0 } } } );
+
+        widget.querySelector( '.simplersvp-name-input' ).value = '';
+        widget.querySelector( '.simplersvp-btn-yes' ).click();
+        await flushPromises();
+
+        expect( global.fetch ).toHaveBeenCalled();
+        expect( widget.querySelector( '.simplersvp-buttons' ).hidden ).toBe( true );
+    } );
+
+    test( 'when require_name=true, clicking with no name shows error and does not submit', async () => {
+        const widget = await initWidget( makeWidgetHtml( { requireName: 'true' } ) );
+        global.fetch = jest.fn();
+
+        widget.querySelector( '.simplersvp-name-input' ).value = '';
+        widget.querySelector( '.simplersvp-btn-yes' ).click();
+        await flushPromises();
+
+        expect( global.fetch ).not.toHaveBeenCalledWith(
+            expect.anything(),
+            expect.objectContaining( { method: 'POST' } )
+        );
+        expect( widget.querySelector( '.simplersvp-name-error' ).hidden ).toBe( false );
+        expect( widget.querySelector( '.simplersvp-buttons' ).hidden ).toBe( false );
+    } );
+
+    test( 'when require_name=true and name is filled, submit proceeds normally', async () => {
+        const widget = await initWidget( makeWidgetHtml( { requireName: 'true' } ) );
+        global.fetch = makeFetchMock( { success: true, data: { counts: { yes: 1, no: 0, maybe: 0 } } } );
+
+        widget.querySelector( '.simplersvp-name-input' ).value = 'Alice';
+        widget.querySelector( '.simplersvp-btn-yes' ).click();
+        await flushPromises();
+
+        expect( global.fetch ).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.objectContaining( { method: 'POST' } )
+        );
+        expect( widget.querySelector( '.simplersvp-buttons' ).hidden ).toBe( true );
+    } );
+
+    test( 'error span is hidden on initial render', async () => {
+        const widget = await initWidget( makeWidgetHtml( { requireName: 'true' } ) );
+        expect( widget.querySelector( '.simplersvp-name-error' ).hidden ).toBe( true );
+    } );
+
+    test( 'error is hidden once the user starts typing', async () => {
+        const widget = await initWidget( makeWidgetHtml( { requireName: 'true' } ) );
+        global.fetch = jest.fn();
+
+        // Trigger error first.
+        widget.querySelector( '.simplersvp-btn-yes' ).click();
+        expect( widget.querySelector( '.simplersvp-name-error' ).hidden ).toBe( false );
+
+        // Now type in the name field.
+        const input = widget.querySelector( '.simplersvp-name-input' );
+        input.value = 'Bob';
+        input.dispatchEvent( new Event( 'input' ) );
+
+        expect( widget.querySelector( '.simplersvp-name-error' ).hidden ).toBe( true );
     } );
 } );
 
